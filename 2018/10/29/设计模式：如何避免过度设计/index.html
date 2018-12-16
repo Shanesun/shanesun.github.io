@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="设计和架构：码业务与重构计划写一个系列文章，总结自己在四年iOS生涯中对设计模式和架构的理解。主要包括自己的总结、Apple源码和优秀三方开源项目中设计模式和架构的学习。">
+<meta name="keywords" content="设计模式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="设计和架构：业务与重构">
+<meta property="og:url" content="http://yoursite.com/2018/10/29/设计模式：如何避免过度设计/index.html">
+<meta property="og:site_name" content="Shanesun">
+<meta property="og:description" content="设计和架构：码业务与重构计划写一个系列文章，总结自己在四年iOS生涯中对设计模式和架构的理解。主要包括自己的总结、Apple源码和优秀三方开源项目中设计模式和架构的学习。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2018/10/29/images/wx_pay.png">
+<meta property="og:updated_time" content="2018-11-07T00:04:19.741Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="设计和架构：业务与重构">
+<meta name="twitter:description" content="设计和架构：码业务与重构计划写一个系列文章，总结自己在四年iOS生涯中对设计模式和架构的理解。主要包括自己的总结、Apple源码和优秀三方开源项目中设计模式和架构的学习。">
+<meta name="twitter:image" content="http://yoursite.com/2018/10/29/images/wx_pay.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/10/29/设计模式：如何避免过度设计/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>设计和架构：业务与重构 | Shanesun</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Shanesun</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/29/设计模式：如何避免过度设计/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Shanesun">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Shanesun">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">设计和架构：业务与重构
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-10-29 18:44:13" itemprop="dateCreated datePublished" datetime="2018-10-29T18:44:13+08:00">2018-10-29</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2018-11-07 08:04:19" itemprop="dateModified" datetime="2018-11-07T08:04:19+08:00">2018-11-07</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/10/29/设计模式：如何避免过度设计/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count gitment-comments-count" data-xid="/2018/10/29/设计模式：如何避免过度设计/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="设计和架构：码业务与重构"><a href="#设计和架构：码业务与重构" class="headerlink" title="设计和架构：码业务与重构"></a>设计和架构：码业务与重构</h1><p>计划写一个系列文章，总结自己在四年iOS生涯中对设计模式和架构的理解。主要包括自己的总结、Apple源码和优秀三方开源项目中设计模式和架构的学习。</p>
+<a id="more"></a>
+<blockquote>
+<p>这只是自己的总结，每人理解不一样。希望能抛转引玉，让大家加深理解。</p>
+</blockquote>
+<h2 id="业务与重构"><a href="#业务与重构" class="headerlink" title="业务与重构"></a>业务与重构</h2><p>系列中的第一篇文章主要介绍自己在码业务时的一个指导思想，主要解决在<strong>快速开发</strong>过程中最常遇见的2个问题：</p>
+<ul>
+<li>业务开发中如何避免过度设计？</li>
+<li>何时需要重构？</li>
+</ul>
+<p>为什么会有这样的问题？ 通常我们的版本是呈现出<strong>小步迭代</strong>、<strong>快速开发</strong>的开发规划，主要就是功能多，开发快。所以就会要求我们在码业务时：尽量快速的开发功能，同时又要追求高质量的代码。在一段时候后业务越堆越多再去添加新功能越来越麻烦，又需要我们重构代码。这些问题是非常矛盾的，我们如何去判断何时该进行代码抽象？何时又该去重构？</p>
+<blockquote>
+<p>God, Grant me</p>
+<p>the serenity to accept the thing I cannot change,</p>
+<p>the courage to change the thing I can change,</p>
+<p>and wisdom to separate the difference.</p>
+</blockquote>
+<h2 id="业务开发中如何避免过度设计？"><a href="#业务开发中如何避免过度设计？" class="headerlink" title="业务开发中如何避免过度设计？"></a>业务开发中如何避免过度设计？</h2><h3 id="DRY原则"><a href="#DRY原则" class="headerlink" title="DRY原则"></a>DRY原则</h3><p><a href="https://en.wikipedia.org/wiki/Don%27t_repeat_yourself" target="_blank" rel="noopener">DRY原则</a>是Don’t repeat yourself 的缩写，DRY原则想要表达的是：系统内的每一个知识点都应该是单一，明确，权威的标识。同样的功能不应该重复多份实现，应该提取成一个共用的功能。</p>
+<h3 id="YAGNI原则"><a href="#YAGNI原则" class="headerlink" title="YAGNI原则"></a>YAGNI原则</h3><p><a href="https://en.wikipedia.org/wiki/You_aren%27t_gonna_need_it" target="_blank" rel="noopener">YAGNI原则</a>是You aren’t gonna need it 的缩写，YAGNI原则主要含义是：不要添加多余功能除非那是必需的。</p>
+<h3 id="Rule-Of-Three原则"><a href="#Rule-Of-Three原则" class="headerlink" title="Rule Of Three原则"></a>Rule Of Three原则</h3><p><a href="https://en.wikipedia.org/wiki/Rule_of_three_(computer_programming" target="_blank" rel="noopener">Rule Of Three原则</a>)是指当一个功能直到第三次出现时，才进行功能提取。为什么是三次？在数学领域如果要提取一个模型：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Complete the pattern:</span><br><span class="line">1, 2, _, _, _, _</span><br></pre></td></tr></table></figure>
+<p>当这个模型只出现2次时，推导完整的模型是非常不清晰的，依靠出现2次的话可能有以下模型：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. x2 模型</span><br><span class="line">1, 2, 4, 8, 16, 32</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">2. +1 模型</span><br><span class="line">1, 2, 3, 4, 5, 6</span><br></pre></td></tr></table></figure>
+<p>如果出现3次才进行模型提取：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Complete the pattern:</span><br><span class="line">1, 2, 3, _, _, _</span><br></pre></td></tr></table></figure>
+<p>这个时候得到的模型将更加清晰，只会是+1模型。通过第三次重复才开始提取能更加确定这个模型，在代码中同样适用这个理论，这样能避免提取错误模式情况下的浪费时间。</p>
+<blockquote>
+<p>计算机领域其实有很多地方有3这个数字，比如HTTP需要最少3次握手才能建立信任关系下的稳定连接。并不是说大于3次不行当然是越多越好，但是3次是最少的次数。</p>
+</blockquote>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>软件开发中如果不依靠这些原则，假设有足够的经验和直觉下：</p>
+<p>我们只看到一次出现的代码就进行抽象，这可能非常耗时因为特定场景的不同很多细节也有差异，这些差异会出现在抽象代码中，你的经验和直觉可以给出更好的设计，但还是有风险。所以现在只管去做先不要抽象。</p>
+<p>第二次出现就抽象能让我们更好的了解哪些细节需要出现在抽象代码中，哪些不需要。但是抽象模型不够清晰，可能在第三次出现时需要大量修改逻辑，这样还是很费时。所以在第二次重复出现时不去抽象非常让人反感，但是还是可以非常快的copy过去进行修改。</p>
+<p>第三次出现再抽象，基本魔板已经确定，所有细节哪些需要抽象哪些不需要的也能确定。哪怕第四次出现的偏差也能快速确定是否需要抽象，快速调整。</p>
+<p>上面介绍的三个原则相互补充，尽可能完善的指导我们何时才需要对代码进行抽象。帮助我们快速开发，节约时间。</p>
+<h2 id="何时重构？"><a href="#何时重构？" class="headerlink" title="何时重构？"></a>何时重构？</h2><p>什么是重构？有两种解释：</p>
+<blockquote>
+<p>重构（名词）：对软件内部结构的一种调整，<strong>目的是</strong>在<strong>不改变软件可观察行为的前提下</strong>，提高其可<strong>理解性</strong>，<strong>降低其修改成本</strong>。</p>
+<p>重构（动词）：使用一系列重构手法，<strong>在不改变软件可观察行为的前提下</strong>，调整其<strong>结构</strong>。</p>
+</blockquote>
+<p>何时重构？</p>
+<ol>
+<li>添加功能时重构</li>
+</ol>
+<blockquote>
+<p>我无法理解之前的代码。</p>
+<p>代码的设计无法帮助我们轻松添加我嗦需要的特性。</p>
+</blockquote>
+<ol start="2">
+<li>修复Bug时重构</li>
+</ol>
+<blockquote>
+<p>代码结构复杂不容易看出bug，这时重构能帮助我们理清逻辑。快速看出Bug。</p>
+</blockquote>
+<ol start="3">
+<li>review代码时重构</li>
+</ol>
+<blockquote>
+<p>review是很有价值的事，在review过程中可以阅读其他人的代码提出更多恰当的建议。同时重构能帮助我们更好的理解代码，提出更有意义的代码。但要记住一个团队中保留多个意见也是很有必要的。</p>
+</blockquote>
+<p>以上重构时间排列是有先后顺序，同时重构前需要有足够的测试用例或单元测试支撑。重构遍布在每个版本开发过程中。</p>
+<p><em>以上引用内容摘自<a href="https://book.douban.com/subject/4262627/" target="_blank" rel="noopener">《重构 改善既有代码的设计》</a>非常推荐。</em></p>
+<h2 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h2><p>过度设计非常浪费时间，想半天可能再最后全盘推翻。绞尽脑汁，封装极好的模块可能就一个地方在使用。</p>
+<p>重构是软件开发过程中不可缺少的一环，重构应该伴随在整个版本开发过程。</p>
+<p>希望上面两点总结，能对大家有用。:)</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://book.douban.com/subject/1152111/" target="_blank" rel="noopener">《程序员修炼之道》</a></p>
+<p><a href="https://lostechies.com/derickbailey/2012/10/31/abstraction-the-rule-of-three/" target="_blank" rel="noopener">Abstraction: The Rule Of Three</a></p>
+<p><a href="https://book.douban.com/subject/4262627/" target="_blank" rel="noopener">《重构 改善既有代码的设计》</a></p>
+<p><img src="/2018/10/29/设计模式：如何避免过度设计/../images/wx_pay.png" alt=""></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/设计模式/" rel="tag"># 设计模式</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/09/29/iOS-tips-UITableView的TableViewHedader使用autolayout布局/" rel="next" title="iOS tips UITableView的TableViewHedader使用autolayout布局">
+                <i class="fa fa-chevron-left"></i> iOS tips UITableView的TableViewHedader使用autolayout布局
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/10/30/category方法重名导致的异常/" rel="prev" title="category方法重名导致的异常">
+                category方法重名导致的异常 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Shanesun</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#设计和架构：码业务与重构"><span class="nav-number">1.</span> <span class="nav-text">设计和架构：码业务与重构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#业务与重构"><span class="nav-number">1.1.</span> <span class="nav-text">业务与重构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#业务开发中如何避免过度设计？"><span class="nav-number">1.2.</span> <span class="nav-text">业务开发中如何避免过度设计？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DRY原则"><span class="nav-number">1.2.1.</span> <span class="nav-text">DRY原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#YAGNI原则"><span class="nav-number">1.2.2.</span> <span class="nav-text">YAGNI原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Rule-Of-Three原则"><span class="nav-number">1.2.3.</span> <span class="nav-text">Rule Of Three原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">1.2.4.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#何时重构？"><span class="nav-number">1.3.</span> <span class="nav-text">何时重构？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结-1"><span class="nav-number">1.4.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">1.5.</span> <span class="nav-text">参考</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Shanesun</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Muse</a> v6.4.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://aimingoo.github.io/gitmint/style/default.css">
+        <script src="https://aimingoo.github.io/gitmint/dist/gitmint.browser.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            id: '1540809853000',
+            owner: 'Shanesun',
+            repo: 'shanesun.github.io',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+                redirect_protocol: 'https://shanesun.github.io',
+            
+            
+                client_secret: '9444af7283c7c650111c7962241ec072832d46c2',
+            
+                client_id: 'b277ef678f8621dda0ee'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
+    
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

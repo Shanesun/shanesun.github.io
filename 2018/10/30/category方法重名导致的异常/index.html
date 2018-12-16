@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="category方法重名导致的异常对于category方法命名是非常讲究的一件事。但总有一些第三方库不按照规矩来。">
+<meta name="keywords" content="Bug复盘">
+<meta property="og:type" content="article">
+<meta property="og:title" content="category方法重名导致的异常">
+<meta property="og:url" content="http://yoursite.com/2018/10/30/category方法重名导致的异常/index.html">
+<meta property="og:site_name" content="Shanesun">
+<meta property="og:description" content="category方法重名导致的异常对于category方法命名是非常讲究的一件事。但总有一些第三方库不按照规矩来。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-11-06T23:19:03.141Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="category方法重名导致的异常">
+<meta name="twitter:description" content="category方法重名导致的异常对于category方法命名是非常讲究的一件事。但总有一些第三方库不按照规矩来。">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/10/30/category方法重名导致的异常/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>category方法重名导致的异常 | Shanesun</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Shanesun</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/10/30/category方法重名导致的异常/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Shanesun">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Shanesun">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">category方法重名导致的异常
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-10-30 11:35:03" itemprop="dateCreated datePublished" datetime="2018-10-30T11:35:03+08:00">2018-10-30</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2018-11-07 07:19:03" itemprop="dateModified" datetime="2018-11-07T07:19:03+08:00">2018-11-07</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/10/30/category方法重名导致的异常/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count gitment-comments-count" data-xid="/2018/10/30/category方法重名导致的异常/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="category方法重名导致的异常"><a href="#category方法重名导致的异常" class="headerlink" title="category方法重名导致的异常"></a>category方法重名导致的异常</h1><p>对于category方法命名是非常讲究的一件事。但总有一些第三方库不按照规矩来。</p>
+<a id="more"></a>  
+<h3 id="复原Bug的表现"><a href="#复原Bug的表现" class="headerlink" title="复原Bug的表现"></a>复原Bug的表现</h3><p>我的一个朋友在用Masonry写顶部布局时：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[topView mas_makeConstraints:^(MASConstraintMaker *make) &#123;</span><br><span class="line">        make.top.equalTo(self.view.mas_safeAreaLayoutGuideTop);</span><br><span class="line">        make.leading.trailing.equalTo(self.view);</span><br><span class="line">        make.height.offset(44);</span><br><span class="line">&#125;];</span><br></pre></td></tr></table></figure>
+<p>正常逻辑下会出现的效果应该是：在普通屏幕上<code>topView</code>距离顶部有<code>20point</code>，在刘海屏上距离顶部<code>44point</code>。但实际出现的是具体顶部是0point。</p>
+<h3 id="寻找Bug的出现原因"><a href="#寻找Bug的出现原因" class="headerlink" title="寻找Bug的出现原因"></a>寻找Bug的出现原因</h3><p>进行了以下尝试：</p>
+<ol>
+<li>第一个想到的是，使用<code>IB</code>和<code>ViewController</code>混合布局的过程中在IB中将<code>Safe Area</code>关掉了？检查IB中的<code>Safe Area</code>是开启状态。</li>
+<li>是否有其他逻辑？修改了当前的<code>safe insert</code>。在<code>ViewController</code>打印<code>safe insert</code>值是正常的。</li>
+<li>项目中其他业务逻辑对<code>Safe Area</code>产生了影响？将所有业务代码全部删除，保留第三方库和pod库。结果还是一样的有问题。</li>
+</ol>
+<p>到这个地方就开始怀疑可能是Masonry有问题或者第三库对Masonry有影响。又进行了以下尝试：</p>
+<ol>
+<li>新建项目copy同样代码，新项目正常。</li>
+<li>不使用<code>Masonry</code>布局，使用<code>NSLayoutConstraint</code>进行布局。显示正常。</li>
+<li>在<code>UIView+MASAdditions.m</code>文件中对<code>mas_makeConstraints:</code>实现代码添加断点，<strong>发现断点并没有进入</strong>,<strong>断点直接停留在了汇编调用的地方</strong>，这个情况只有在m文件没有暴露出来的<strong>静态库或者动态库</strong>中才会出现。</li>
+</ol>
+<p>问题逐渐清晰，根据排查得到的结果是：第三库中极其有可能存在其他文件也存在<code>mas_makeConstraints:</code>方法，2个方法名是相同的，第三方库自己可能在<code>mas_makeConstraints:</code>添加了一些代码，造成了布局界面有问题。</p>
+<h3 id="寻找静态库中的category是否存在同名方法"><a href="#寻找静态库中的category是否存在同名方法" class="headerlink" title="寻找静态库中的category是否存在同名方法"></a>寻找静态库中的category是否存在同名方法</h3><p>接下来的问题就是寻找第三方库中的category是否存在同名方法。开源的第三库已经进行全局搜索，没有发现同名方法。剩下就只有静态库中寻找同名方法。  </p>
+<p>使用<a href="https://github.com/nygard/class-dump" target="_blank" rel="noopener">class-dump</a>查看Mach-O文件中所有的方法名。确实在第三方静态库中找到了同名方法，联系三方库的开发商重新给了一个新的SDK，问题解决。到此这个问题算是得到解决。 </p>
+<h3 id="重点"><a href="#重点" class="headerlink" title="重点"></a>重点</h3><p>回过头来看下解决这个问题的关键点：</p>
+<ol>
+<li><strong>发现断点并没有进入,断点直接停留在了汇编调用的地方</strong>。只有源码没有暴露出来才会停留到汇编界面。确定了存在重复<code>mas_makeConstraints:</code>方法名的判断。</li>
+<li><strong>使用<a href="https://github.com/nygard/class-dump" target="_blank" rel="noopener">class-dump</a>查看Mach-O文件中所有的方法名</strong>。查找到了具体是哪个静态库存在重复方法名。</li>
+</ol>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Bug复盘/" rel="tag"># Bug复盘</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/10/29/设计模式：如何避免过度设计/" rel="next" title="设计和架构：业务与重构">
+                <i class="fa fa-chevron-left"></i> 设计和架构：业务与重构
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/11/07/Objective-C特性：runtime/" rel="prev" title="Objective-C特性：runtime">
+                Objective-C特性：runtime <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Shanesun</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#category方法重名导致的异常"><span class="nav-number">1.</span> <span class="nav-text">category方法重名导致的异常</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#复原Bug的表现"><span class="nav-number">1.0.1.</span> <span class="nav-text">复原Bug的表现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#寻找Bug的出现原因"><span class="nav-number">1.0.2.</span> <span class="nav-text">寻找Bug的出现原因</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#寻找静态库中的category是否存在同名方法"><span class="nav-number">1.0.3.</span> <span class="nav-text">寻找静态库中的category是否存在同名方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重点"><span class="nav-number">1.0.4.</span> <span class="nav-text">重点</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Shanesun</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Muse</a> v6.4.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://aimingoo.github.io/gitmint/style/default.css">
+        <script src="https://aimingoo.github.io/gitmint/dist/gitmint.browser.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            id: '1540870503000',
+            owner: 'Shanesun',
+            repo: 'shanesun.github.io',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+                redirect_protocol: 'https://shanesun.github.io',
+            
+            
+                client_secret: '9444af7283c7c650111c7962241ec072832d46c2',
+            
+                client_id: 'b277ef678f8621dda0ee'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
+    
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

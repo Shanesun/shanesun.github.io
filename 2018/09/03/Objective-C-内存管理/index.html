@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.4.1" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.4.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.4.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.4.1" color="#222">
+
+
+
+
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '6.4.1',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="程序的内存结构一个程序内存结构可以大致分为2部分:只读部分和读写部分。只读部分包括.text和.rodata段，读写部分又根据任务的不同划分成了以下几个段： .text代码段也叫文本段或者文本，存储了目标文件的一部分，或者包含虚拟地址空间中的可执行指定。其实就是存放了编译程序代码后机器指令。只读。">
+<meta name="keywords" content="OC原理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Objective-C内存管理：对象">
+<meta property="og:url" content="http://yoursite.com/2018/09/03/Objective-C-内存管理/index.html">
+<meta property="og:site_name" content="Shanesun">
+<meta property="og:description" content="程序的内存结构一个程序内存结构可以大致分为2部分:只读部分和读写部分。只读部分包括.text和.rodata段，读写部分又根据任务的不同划分成了以下几个段： .text代码段也叫文本段或者文本，存储了目标文件的一部分，或者包含虚拟地址空间中的可执行指定。其实就是存放了编译程序代码后机器指令。只读。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://yoursite.com/2018/09/03/Objective-C-内存管理/memory_struct.png">
+<meta property="og:updated_time" content="2018-09-10T13:39:10.719Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Objective-C内存管理：对象">
+<meta name="twitter:description" content="程序的内存结构一个程序内存结构可以大致分为2部分:只读部分和读写部分。只读部分包括.text和.rodata段，读写部分又根据任务的不同划分成了以下几个段： .text代码段也叫文本段或者文本，存储了目标文件的一部分，或者包含虚拟地址空间中的可执行指定。其实就是存放了编译程序代码后机器指令。只读。">
+<meta name="twitter:image" content="http://yoursite.com/2018/09/03/Objective-C-内存管理/memory_struct.png">
+
+
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/09/03/Objective-C-内存管理/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Objective-C内存管理：对象 | Shanesun</title>
+  
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Shanesun</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+    <a href="/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+    <a href="/archives/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+    <a href="/tags/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+    <a href="/categories/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+    <a href="/about/" rel="section">
+      <i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/09/03/Objective-C-内存管理/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Shanesun">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Shanesun">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Objective-C内存管理：对象
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-09-03 15:20:04" itemprop="dateCreated datePublished" datetime="2018-09-03T15:20:04+08:00">2018-09-03</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2018-09-10 21:39:10" itemprop="dateModified" datetime="2018-09-10T21:39:10+08:00">2018-09-10</time>
+              
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/09/03/Objective-C-内存管理/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count gitment-comments-count" data-xid="/2018/09/03/Objective-C-内存管理/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="程序的内存结构"><a href="#程序的内存结构" class="headerlink" title="程序的内存结构"></a>程序的内存结构</h2><p>一个程序内存结构可以大致分为2部分:只读部分和读写部分。只读部分包括<code>.text</code>和<code>.rodata</code>段，读写部分又根据任务的不同划分成了以下几个段：<br><img src="/2018/09/03/Objective-C-内存管理/memory_struct.png" alt="程序内存结构"></p>
+<h3 id="text"><a href="#text" class="headerlink" title=".text"></a>.text</h3><p>代码段也叫文本段或者文本，存储了目标文件的一部分，或者包含虚拟地址空间中的可执行指定。其实就是存放了编译程序代码后机器指令。只读。<br><a id="more"></a></p>
+<h3 id="data"><a href="#data" class="headerlink" title=".data"></a>.data</h3><p>存储了所有可以修改的全局变量或者静态变量，并且这些变量是已经赋了初始值的。</p>
+<h3 id="bss"><a href="#bss" class="headerlink" title=".bss"></a>.bss</h3><p>未初始化全局变量和静态变量。</p>
+<h3 id="heap"><a href="#heap" class="headerlink" title="heap"></a>heap</h3><p>使用 malloc, realloc, 和 free 函数控制的变量，堆在所有的线程，共享库，和动态加载的模块中被共享使用。释放工作由程序员控制，容易产生内存泄漏。</p>
+<p>链表结构，从低地址向高地址生长的不连续内存区域，遍历方向页是由低地址向高地址。堆的大小受限于计算机系统中有效的虚拟内存，所以在大量对象创建但没有及时释放时会撑爆内存，由此可见，堆获得的空间比较灵活，也比较大。同时因为是链表结构，肯定也会造成空间的不连续，从而造成大量的碎片，使程序效率降低。</p>
+<h3 id="stack"><a href="#stack" class="headerlink" title="stack"></a>stack</h3><p>内部临时变量以及有关上下文的内存区域存放在栈中。程序在调用函数时，操作系统会自动通过压栈和弹栈完成保存函数现场等操作，不需要程序员手动干预。</p>
+<p>LIFO结构，从高地址向低地址生长。栈有2种分配方式：静态分配和动态分配。静态分配是编译器完成的，比如局部变量的分配。动态分配由alloca函数进行分配，但是栈的动态分配和堆是不同的，他的动态分配是由编译器进行释放，无需我们手工实现。</p>
+<p>栈是一块连续的内存区域，栈顶的地址和栈的最大容量是系统预先规定好的。能从栈获得的空间较小。如果申请的空间超过栈的剩余空间时，例如递归深度过深，将提示stackoverflow。</p>
+<p>栈是机器系统提供的数据结构，计算机会在底层对栈提供支持：分配专门的寄存器存放栈的地址，压栈出栈都有专门的指令执行，这就决定了栈的效率比较高。</p>
+<blockquote>
+<p>注意：在Objective-C中，函数内的临时对象，对象指针是放在栈中，而对象数据其实存储在堆中。 在针对一些场景，比如将这个临时对象放到一个collection结构中时，在结束作用域时，在堆中更好处理。还有一部分则是历史原因可以追溯到NeXTSTEP version 2.0时候的设计。<br><a href="https://softwareengineering.stackexchange.com/questions/291474/why-does-objective-c-store-objects-on-the-heap-instead-of-on-the-stack" target="_blank" rel="noopener">why does objective-c store objects on the heap instead of on the stack</a><br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> val = <span class="number">3</span>;</span><br><span class="line"><span class="keyword">char</span> <span class="built_in">string</span>[] = <span class="string">"Hello World"</span>;</span><br></pre></td></tr></table></figure></p>
+</blockquote>
+<p>这两个变量的值会一开始被存储在 .text 中（因为值是写在代码里面的），在程序启动时会拷贝到 .data 去区中。</p>
+<p>而不初始化的话，像下面这样,这个变量就会被放在 bss 段中。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="keyword">int</span> i;</span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p><a href="https://en.wikipedia.org/wiki/Data_segment" target="_blank" rel="noopener">数据段</a></p>
+</blockquote>
+<h3 id="错误的内存管理会带来的问题"><a href="#错误的内存管理会带来的问题" class="headerlink" title="错误的内存管理会带来的问题"></a>错误的内存管理会带来的问题</h3><ol>
+<li>使用已经释放或重写过的内存数据。<br> 会造成数据混乱，通常的结果是crash，设置损坏用户的数据。</li>
+<li>没有释放不再使用的数据，造成的内存泄漏。<br> 应用程序在使用过程中不断增加的内存量，这可能导致系统性能不佳或内存占用过多而被终止。</li>
+</ol>
+<h2 id="引用计数管理内存"><a href="#引用计数管理内存" class="headerlink" title="引用计数管理内存"></a>引用计数管理内存</h2><p>iOS中使用了引用计数来管理内存，引用计数中包含两种方式：MRC 和 ARC。这里假设读者使用过MRC并且有一定了解。</p>
+<h2 id="内存管理"><a href="#内存管理" class="headerlink" title="内存管理"></a>内存管理</h2><h3 id="内存管理原则"><a href="#内存管理原则" class="headerlink" title="内存管理原则"></a>内存管理原则</h3><p>在MRC中有四个法则知道程序员手动管理内存：</p>
+<ul>
+<li>自己生成的对象，自己持有。<br>使用以<code>alloc</code>、<code>new</code>、<code>copy</code>或者<code>mutableCopy</code>开头的方法创建的对象。（比如 <code>alloc</code>,<code>newObject</code>,<code>mutableCopy</code>）</li>
+<li>非自己生成的对象，自己也能持有。</li>
+<li>不在需要自己持有对象的时候，释放。<br>通过<code>release</code>或者<code>autorelease</code>消息释放自己持有的对象。<code>release</code>和<code>autorelease</code>在ARC中都不再需要手动调用。</li>
+<li>非自己持有的对象无需释放。</li>
+</ul>
+<p>四个法则对应的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line"> * 自己生成并持有该对象</span><br><span class="line"> */</span><br><span class="line"> id obj0 = [[NSObeject alloc] init];</span><br><span class="line"> id obj1 = [NSObeject new];</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line"> * 持有非自己生成的对象</span><br><span class="line"> */</span><br><span class="line">id obj = [NSArray array]; // 非自己生成的对象，且该对象存在，但自己不持有</span><br><span class="line">[obj retain]; // 自己持有对象</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line"> * 不在需要自己持有的对象的时候，释放</span><br><span class="line"> */</span><br><span class="line">id obj = [[NSObeject alloc] init]; // 此时持有对象</span><br><span class="line">[obj release]; // 释放对象</span><br><span class="line">/*</span><br><span class="line"> * 指向对象的指针仍就被保留在obj这个变量中</span><br><span class="line"> * 但对象已经释放，不可访问</span><br><span class="line"> */</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/*</span><br><span class="line"> * 非自己持有的对象无法释放</span><br><span class="line"> */</span><br><span class="line">id obj = [NSArray array]; // 非自己生成的对象，且该对象存在，但自己不持有</span><br><span class="line">[obj release]; // ~~~此时将运行时crash 或编译器报error~~~ 非 ARC 下，调用该方法会导致编译器报 issues。此操作的行为是未定义的，可能会导致运行时 crash 或者其它未知行为</span><br></pre></td></tr></table></figure>
+<p><strong>非自己持有的对象无法释放</strong>，这些对象什么时候释放呢？这就要利用<strong>autorelease</strong>对象来实现的，<strong>autorelease</strong>对象不会在作用域结束时立即释放，而是会加入<strong>autoreleasepool</strong>释放池中，应用程序在事件循环的每个<strong>循环开始</strong>时在主线程上创建一个<strong>autoreleasepool</strong>，并在<strong>循环最后</strong>调用<strong>drain</strong>将其排出，这时会调用<strong>autoreleasepool</strong>中的每一个对象的<strong>release</strong>方法。</p>
+<h3 id="常量对象"><a href="#常量对象" class="headerlink" title="常量对象"></a>常量对象</h3><p>内存中的常量对象（类对象，常量字符串对象等）是在<code>.data</code>或<code>.bss</code>字段，他们没有引用计数机制，永远不能释放这些对象。给这些对象发送消息<code>retainCount</code>后，返回的是NSUIntergerMax。</p>
+<h3 id="不要在init和delloc中使用setter或者getter方法"><a href="#不要在init和delloc中使用setter或者getter方法" class="headerlink" title="不要在init和delloc中使用setter或者getter方法"></a>不要在<code>init</code>和<code>delloc</code>中使用<code>setter</code>或者<code>getter</code>方法</h3><p>如果存在继承和子类重写父类setter或者getter方法的前提下，可能会存在崩溃或异常状态。</p>
+<blockquote>
+<p>在dealloc里不要调用属性的存取方法，因为有人可能会覆写这些方法，并于其中做一些无法再回收阶段安全执行的操作（上面已经提到）。此外，属性可能正处于“键值观察”(Key-Value Observation，KVO)机制的监控之下，该属性的观察者(Observer)可能会在属性值改变时“保留”或使用这个即将回首的对象。这种做法会令运行期系统的状态完全失调，从而导致一些莫名其妙的错误。</p>
+</blockquote>
+<h3 id="不要在delloc中直接管理稀缺资源"><a href="#不要在delloc中直接管理稀缺资源" class="headerlink" title="不要在delloc中直接管理稀缺资源"></a>不要在delloc中直接管理稀缺资源</h3><p>对象delloc方法的调用可能存在的问题：</p>
+<ol>
+<li>对象release存在两种可能，一是被强引用依赖其他对象释放后才会被释放顺序处理，二是如果是autorelease对象，释放的时机则是无序的。</li>
+<li>对象内存泄漏时比较常见但是不会致命的错误，但是资源管理对于应该释放而没有释放的资源，引起的问题是可能要更加严重。</li>
+<li>如果一个对象在意外时间自动释放，它将在它碰巧所在的任何线程的自动释放池块中被释放。对于只能从一个线程触及的资源，这很容易致命。<br>所以对于稀缺资源(文件管理，网络连接，缓冲和缓冲)就不能按照预想的逻辑在<code>delloc</code>中及时处理。</li>
+</ol>
+<h3 id="修饰符"><a href="#修饰符" class="headerlink" title="修饰符"></a>修饰符</h3><h4 id="属性修饰符"><a href="#属性修饰符" class="headerlink" title="属性修饰符"></a>属性修饰符</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">@property (assign/retain/strong/weak/unsafe_unretained/copy) NSArray *array;</span><br></pre></td></tr></table></figure>
+<p><code>assign</code>: 表明<code>setter</code> 仅仅是一个简单的赋值操作，通常用于基本的数值类型，例如CGFloat和NSInteger。<br><code>retain</code>: 引用计数加1。<br><code>strong</code>: 和<code>retain</code>类似，引用计数加1。对象类型时默认就是<code>strong</code>。<br><code>weak</code>: 和<code>assign</code>类似，当对象释放时，会自动设置为<code>nil</code>。<br><code>unsafe_unretained</code>: 的语义和<code>assign</code>类似，不过是用于对象类型的，表示一个非拥有(unretained)的，同时也不会在对象被销毁时置为<code>nil</code>的(unsafe)关系。性能优于<code>weak</code>参照<code>weak</code>实现原理。<br><code>copy</code>: 类似<code>storng</code>，不过在赋值时进行<code>copy</code>操作而不是<code>retain</code>，在<code>setter</code>中比较明显的会发现一个<code>copy</code>行为。 常在model或者赋值时使用，防止外部修改或者多线程中修改。</p>
+<h4 id="变量修饰符"><a href="#变量修饰符" class="headerlink" title="变量修饰符"></a>变量修饰符</h4><p><code>__strong</code>: 对象默认使用标识符，<code>retain</code>+1。只要存在<code>strong</code>指针指向一个对象那他就会一直保存存活。<br><code>__weak</code>: 弱引用对象，引用计数不会增加。对象被销毁时自己被置为 nil 。<br><code>__unsafe_unretained</code>: 不会持有对象，引用计数不会增加，但是在对象被销毁时不会自动置为nil，该指针依旧指向原来的地址，这就变成一个悬垂指针了。<br><code>__autoreleasing</code>: 用来表示<code>d *</code>修饰的参数，并且在返回时被自动释放掉。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// ClassName * qualifier variableName;</span><br><span class="line">// for example:</span><br><span class="line">MyClass * __weak myWeakReference;</span><br><span class="line">MyClass * __unsafe_unretained myUnsafeReference;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><code>qualifier</code>只能放在 * 和 变量名 之间，但是放到其他位置也不会报错，编译器对此做过优化。</p>
+</blockquote>
+<p>在使用引用地址传值时需要特别注意，比如以下代码能正常工作：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">NSError *error;</span><br><span class="line">BOOL OK = [myObject performOperationWithError:&amp;error];</span><br><span class="line">if (!OK) &#123;</span><br><span class="line">    // Report the error.</span><br><span class="line">    // ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>但是，这里有一个错误的隐式声明：<br><code>NSError * __strong error;</code><br>而方法的声明是：<br><code>-(BOOL)performOperationWithError:(NSError * __autoreleasing *)error;</code></p>
+<p>因此编译器会重写：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">NSError * __strong error;</span><br><span class="line">NSError * __autoreleasing tmp = error;</span><br><span class="line">BOOL OK = [myObject performOperationWithError:&amp;tmp];</span><br><span class="line">error = tmp;</span><br><span class="line">if (!OK) &#123;</span><br><span class="line">    // Report the error.</span><br><span class="line">    // ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>当然你也可以创建<code>-(BOOL)performOperationWithError:(NSError * __strong *)error;</code>方法，也可以创建<code>NSError * __autoreleasing error;</code>使他们的类型一致，采用何种方式视具体上下文逻辑而定。</p>
+<h3 id="循环引用问题"><a href="#循环引用问题" class="headerlink" title="循环引用问题"></a>循环引用问题</h3><p>使用引用计数管理内存时，不可避免的会遇到循环引用问题。 产生原因是多个对象间存在相互引用，其中某个对象的释放都依赖于另一个对象的释放，形成了一个独立的环状结构。</p>
+<p>为了打破这个循环引用关系，有以下两种办法：</p>
+<ol>
+<li>手动将其中的一条强引用置为nil。</li>
+<li>使用<code>weak</code>弱引用的方式，修饰对象。</li>
+</ol>
+<h3 id="AutoreleasePool"><a href="#AutoreleasePool" class="headerlink" title="AutoreleasePool"></a>AutoreleasePool</h3><p>上面也有提到了<strong>AutoreleasePool</strong>，这在整个内存管理中扮演了非常重要的角色。<br>在<a href="https://developer.apple.com/documentation/foundation/nsautoreleasepool?language=occ" target="_blank" rel="noopener">NSAutoreleasePool</a>文档中：</p>
+<blockquote>
+<p>In a reference counted environment, Cocoa expects there to be an autorelease pool always available. If a pool is not available, autoreleased objects do not get released and you leak memory. In this situation, your program will typically log suitable warning messages.</p>
+</blockquote>
+<blockquote>
+<p>The Application Kit creates an autorelease pool on the main thread at the beginning of every cycle of the event loop, and drains it at the end, thereby releasing any autoreleased objects generated while processing an event. If you use the Application Kit, you therefore typically don’t have to create your own pools. If your application creates a lot of temporary autoreleased objects within the event loop, however, it may be beneficial to create “local” autorelease pools to help to minimize the peak memory footprint.</p>
+</blockquote>
+<blockquote>
+<p> <strong>autoreleasepool</strong> 和线程的关系<br>Each thread (including the main thread) maintains its own stack of NSAutoreleasePool objects (see Threads). As new pools are created, they get added to the top of the stack. When pools are deallocated, they are removed from the stack. Autoreleased objects are placed into the top autorelease pool for the current thread. When a thread terminates, it automatically drains all of the autorelease pools associated with itself.<br>Threads<br>If you are making Cocoa calls outside of the Application Kit’s main thread—for example if you create a Foundation-only application or if you detach a thread—you need to create your own autorelease pool.</p>
+</blockquote>
+<blockquote>
+<p>If your application or thread is long-lived and potentially generates a lot of autoreleased objects, you should periodically drain and create autorelease pools (like the Application Kit does on the main thread); otherwise, autoreleased objects accumulate and your memory footprint grows. If, however, your detached thread does not make Cocoa calls, you do not need to create an autorelease pool.</p>
+</blockquote>
+<p>文中提到了<strong>autoreleasepool</strong>4个比较特别的情况：</p>
+<ol>
+<li><p>如果<strong>autoreleasepool</strong>无效时，autorelease对象是无法收到release消息，从而造成内存泄漏。在ARC情况下很少会出现<strong>autoreleasepool</strong>无效的情况下。</p>
+</li>
+<li><p>对于需要产生大量临时<strong>autorelease</strong>对象的逻辑，需要使用<strong>@autoreleasepool{}</strong>来立即释放来降低内存的峰值。</p>
+</li>
+<li><p>关于autoreleasepool在线程中的线程的布局，官方文档说每一个线程都会在栈中维护创建的NSAutoreleasePool 对象，并且会把这个对象放到栈的顶部，从而确保在线程结束时autoreleasepool能在最后drain并且dealloc后从栈中移除。</p>
+</li>
+<li><p>autoreleasepool与线程的关系，除了<strong>main thread</strong>外其他线程都没有自动生成的autoreleasepool。如果你的线程需要长时间存活或者会有autorelease对象生成，<strong>就必须要在线程一开始就创建autoreleasepool</strong>，否则就会有对象泄漏。尤其是长时间存活的线程，你还需要像主线程在runloop末尾定时的去drain。</p>
+</li>
+</ol>
+<h2 id="内存泄漏检测"><a href="#内存泄漏检测" class="headerlink" title="内存泄漏检测"></a>内存泄漏检测</h2><ol>
+<li>观察内存增长减少情况，在退出界面时，观察内存增长情况。 </li>
+<li>查看对象<code>delloc</code>方法调用情况。</li>
+<li>Xcode提供的Debug Memory Graph。</li>
+<li>Xcode提供的instruments。</li>
+<li><a href="https://github.com/Tencent/MLeaksFinder" target="_blank" rel="noopener">MLeaksFinder</a></li>
+</ol>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a href="https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/MemoryMgmt/Articles/MemoryMgmt.html#//apple_ref/doc/uid/10000011-SW1" target="_blank" rel="noopener">《Apple About Memory Management》</a><br><a href="http://clang.llvm.org/docs/AutomaticReferenceCounting.html" target="_blank" rel="noopener">《Clang中ARC的实现》</a><br><a href="http://blog.sunnyxx.com/2014/10/15/behind-autorelease/" target="_blank" rel="noopener">《黑幕背后的 Autorelease》</a><br><a href="https://hit-alibaba.github.io/interview/iOS/ObjC-Basic/MM.html" target="_blank" rel="noopener">内存管理</a></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/OC原理/" rel="tag"># OC原理</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/08/29/2018阅读计划/" rel="next" title="2018阅读计划">
+                <i class="fa fa-chevron-left"></i> 2018阅读计划
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/09/05/Objective-C内存管理-Block/" rel="prev" title="Objective-C内存管理:Block">
+                Objective-C内存管理:Block <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      
+        <div id="gitment-container"></div>
+      
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Shanesun</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">11</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#程序的内存结构"><span class="nav-number">1.</span> <span class="nav-text">程序的内存结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#text"><span class="nav-number">1.1.</span> <span class="nav-text">.text</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#data"><span class="nav-number">1.2.</span> <span class="nav-text">.data</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#bss"><span class="nav-number">1.3.</span> <span class="nav-text">.bss</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#heap"><span class="nav-number">1.4.</span> <span class="nav-text">heap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#stack"><span class="nav-number">1.5.</span> <span class="nav-text">stack</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#错误的内存管理会带来的问题"><span class="nav-number">1.6.</span> <span class="nav-text">错误的内存管理会带来的问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#引用计数管理内存"><span class="nav-number">2.</span> <span class="nav-text">引用计数管理内存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内存管理"><span class="nav-number">3.</span> <span class="nav-text">内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内存管理原则"><span class="nav-number">3.1.</span> <span class="nav-text">内存管理原则</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#常量对象"><span class="nav-number">3.2.</span> <span class="nav-text">常量对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#不要在init和delloc中使用setter或者getter方法"><span class="nav-number">3.3.</span> <span class="nav-text">不要在init和delloc中使用setter或者getter方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#不要在delloc中直接管理稀缺资源"><span class="nav-number">3.4.</span> <span class="nav-text">不要在delloc中直接管理稀缺资源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#修饰符"><span class="nav-number">3.5.</span> <span class="nav-text">修饰符</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#属性修饰符"><span class="nav-number">3.5.1.</span> <span class="nav-text">属性修饰符</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#变量修饰符"><span class="nav-number">3.5.2.</span> <span class="nav-text">变量修饰符</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#循环引用问题"><span class="nav-number">3.6.</span> <span class="nav-text">循环引用问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#AutoreleasePool"><span class="nav-number">3.7.</span> <span class="nav-text">AutoreleasePool</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内存泄漏检测"><span class="nav-number">4.</span> <span class="nav-text">内存泄漏检测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">5.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Shanesun</span>
+
+  
+
+  
+</div>
+
+
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a class="theme-link" target="_blank" href="https://theme-next.org">NexT.Muse</a> v6.4.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.4.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.4.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.4.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.4.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.4.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+<!-- LOCAL: You can save these files to your site and update links -->
+    
+        
+        <link rel="stylesheet" href="https://aimingoo.github.io/gitmint/style/default.css">
+        <script src="https://aimingoo.github.io/gitmint/dist/gitmint.browser.js"></script>
+    
+<!-- END LOCAL -->
+
+    
+
+    
+      <script type="text/javascript">
+      function renderGitment(){
+        var gitment = new Gitmint({
+            id: '1535959204000',
+            owner: 'Shanesun',
+            repo: 'shanesun.github.io',
+            
+            lang: "" || navigator.language || navigator.systemLanguage || navigator.userLanguage,
+            
+            oauth: {
+            
+                redirect_protocol: 'https://shanesun.github.io',
+            
+            
+                client_secret: '9444af7283c7c650111c7962241ec072832d46c2',
+            
+                client_id: 'b277ef678f8621dda0ee'
+            }});
+        gitment.render('gitment-container');
+      }
+
+      
+      renderGitment();
+      
+      </script>
+    
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
